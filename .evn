@@ -1,0 +1,30 @@
+# ==========================================================================
+# Telegram Forwarder Bot - Environment Configuration
+# ==========================================================================
+# Copy this file to ".env" and fill in your real values.
+# Never commit your actual ".env" file to version control.
+
+# Telegram Bot API token, issued by @BotFather on Telegram.
+BOT_TOKEN=123456789:AAAA-your-bot-token-here
+
+# Async PostgreSQL connection string (Neon).
+# Plain "postgresql://" or "postgres://" URLs from your Neon dashboard are
+# fine — config.py automatically rewrites them to use the asyncpg driver.
+DATABASE_URL=postgresql://user:password@ep-example-12345.us-east-2.aws.neon.tech/neondb?sslmode=require
+
+# Telegram numeric user ID of the bot owner (the only person allowed to
+# manage sources/destinations). Get yours by messaging @userinfobot.
+OWNER_ID=123456789
+
+# Logging verbosity: DEBUG, INFO, WARNING, ERROR, or CRITICAL.
+LOG_LEVEL=INFO
+
+# --------------------------------------------------------------------------
+# Optional tuning (safe to leave unset — sensible defaults are used).
+# --------------------------------------------------------------------------
+
+# Maximum retry attempts for transient forwarding failures.
+MAX_RETRY_ATTEMPTS=3
+
+# Base delay (seconds) for exponential backoff between retries.
+RETRY_BASE_DELAY=1.5
