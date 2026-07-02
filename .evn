@@ -5,16 +5,16 @@
 # Never commit your actual ".env" file to version control.
 
 # Telegram Bot API token, issued by @BotFather on Telegram.
-BOT_TOKEN=123456789:AAAA-your-bot-token-here
+BOT_TOKEN=8707381128:AAHqM_3eXpJofrDHoNjbkQ509F9RT5EvT1s
 
 # Async PostgreSQL connection string (Neon).
 # Plain "postgresql://" or "postgres://" URLs from your Neon dashboard are
 # fine — config.py automatically rewrites them to use the asyncpg driver.
-DATABASE_URL=postgresql://user:password@ep-example-12345.us-east-2.aws.neon.tech/neondb?sslmode=require
+DATABASE_URL=postgresql://neondb_owner:npg_PIT30FBtdkKG@ep-tiny-fog-atot1elc-pooler.c-9.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
 
 # Telegram numeric user ID of the bot owner (the only person allowed to
 # manage sources/destinations). Get yours by messaging @userinfobot.
-OWNER_ID=123456789
+OWNER_ID=8753552605
 
 # Logging verbosity: DEBUG, INFO, WARNING, ERROR, or CRITICAL.
 LOG_LEVEL=INFO
