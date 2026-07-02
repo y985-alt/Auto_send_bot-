@@ -150,12 +150,12 @@ def load_settings() -> Settings:
     Raises:
         ConfigError: If any required variable is missing or invalid.
     """
-    bot_token = _get_env("BOT_TOKEN", required=True)
-    raw_database_url = _get_env("DATABASE_URL", required=True)
-    owner_id = _get_int_env("OWNER_ID", required=True)
-    log_level = _get_env("LOG_LEVEL", required=False, default="INFO")
-    max_retry_attempts = _get_int_env("MAX_RETRY_ATTEMPTS", required=False, default=3)
-    retry_base_delay_raw = os.getenv("RETRY_BASE_DELAY", "1.5")
+    bot_token = _get_env("8707381128:AAHqM_3eXpJofrDHoNjbkQ509F9RT5EvT1s", required=True)
+    raw_database_url = _get_env("postgresql://neondb_owner:npg_PIT30FBtdkKG@ep-tiny-fog-atot1elc-pooler.c-9.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require", required=True)
+    owner_id = _get_int_env("8753552605", required=True)
+    log_level = _get_env("INFO", required=False, default="INFO")
+    max_retry_attempts = _get_int_env("3", required=False, default=3)
+    retry_base_delay_raw = os.getenv("1.5", "1.5")
 
     try:
         retry_base_delay = float(retry_base_delay_raw)
