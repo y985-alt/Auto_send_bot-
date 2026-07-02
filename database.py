@@ -1,74 +1,68 @@
-from sqlalchemy import (
-    create_engine,
-    Column,
-    Integer,
-    BigInteger,
-    ForeignKey,
-)
-from sqlalchemy.orm import declarative_base, relationship, sessionmaker
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.exc import SQLAlchemyError
 
-from config import DATABASE_URL
+from config import DATABASE_URL, logger
 
-# ==========================
-# Database Connection
-# ==========================
+# ==========================================================
+# SQLAlchemy Base
+# ==========================================================
+
+Base = declarative_base()
+
+# ==========================================================
+# Database Engine
+# ==========================================================
 
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,
-    future=True
+    pool_recycle=300,
+    pool_size=10,
+    max_overflow=20,
+    future=True,
 )
+
+# ==========================================================
+# Session Factory
+# ==========================================================
 
 SessionLocal = sessionmaker(
     bind=engine,
     autoflush=False,
-    autocommit=False
+    autocommit=False,
+    expire_on_commit=False,
+    future=True,
 )
 
-Base = declarative_base()
+# ==========================================================
+# Database Session
+# ==========================================================
 
-# ==========================
-# Database Models
-# ==========================
+def get_session():
+    """
+    Returns a new SQLAlchemy session.
+    """
 
-class MainChannel(Base):
-    __tablename__ = "main_channels"
-
-    id = Column(Integer, primary_key=True)
-    chat_id = Column(BigInteger, unique=True, nullable=False)
-
-    duplicates = relationship(
-        "DuplicateChannel",
-        back_populates="main",
-        cascade="all, delete"
-    )
+    return SessionLocal()
 
 
-class DuplicateChannel(Base):
-    __tablename__ = "duplicate_channels"
-
-    id = Column(Integer, primary_key=True)
-    main_id = Column(Integer, ForeignKey("main_channels.id"))
-    chat_id = Column(BigInteger, unique=True, nullable=False)
-
-    main = relationship("MainChannel", back_populates="duplicates")
-
-
-# ==========================
+# ==========================================================
 # Create Tables
-# ==========================
+# ==========================================================
 
 def create_tables():
-    Base.metadata.create_all(bind=engine)
+    """
+    Create all tables if they don't exist.
+    """
 
-
-# ==========================
-# Get Database Session
-# ==========================
-
-def get_db():
-    db = SessionLocal()
     try:
-        yield db
-    finally:
-        db.close()
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables created successfully.")
+
+    except SQLAlchemyError as e:
+        logger.error(f"Database Error: {e}")
+        raise
+
+
+# =================================================
