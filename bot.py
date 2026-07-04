@@ -120,79 +120,30 @@ async def handle_setup_input(client, message: Message):
                 await message.reply_text("❌ Invalid format. Send `@username` or numeric Chat ID.", parse_mode=ParseMode.MARKDOWN)
                 return
             
-            # Verify bot is admin
-            try:
-                me = await client.get_me()
+# Check if main channel already exists
+for mapping in config["mappings"]:
+    if mapping["main_chat_id"] == state["main_chat_id"]:
+        # Update duplicates
+        for dup in state["duplicates"]:
+            if dup not in mapping["duplicates"]:
+                mapping["duplicates"].append(dup)
 
-                member = await client.get_chat_member(
-                    chat.id,
-                    me.id
-                )
+        save_config(config)
 
-                if member.status not in ("administrator", "owner"):
-                    await message.reply_text(
-                        f"❌ I'm not an admin in **{chat.title}**. Make me admin first!",
-                        parse_mode=ParseMode.MARKDOWN
-                    )
-                    return
+        dup_list = "\n".join(
+            [f"• {d['title']} (`{d['chat_id']}`)" for d in state["duplicates"]]
+        )
 
-            except Exception as e:
-                await message.reply_text(
-                    f"❌ Cannot access **{chat.title}**.\n\n{e}",
-                    parse_mode=ParseMode.MARKDOWN
-                )
-                return
+        await message.reply_text(
+            f"✅ **Updated!**\n\n"
+            f"**Main:** {state['main_chat_title']}\n"
+            f"**Duplicates added:**\n{dup_list}\n\n"
+            f"New posts will auto-forward now! 🚀",
+            parse_mode=ParseMode.MARKDOWN
+        )
 
-            state["main_chat_id"] = chat.id
-            state["main_chat_title"] = chat.title
-            state["duplicates"] = []
-            state["step"] = "awaiting_duplicate"
-
-            await message.reply_text(
-                f"✅ **Main Channel:** {chat.title}\n"
-                f"**Chat ID:** `{chat.id}`\n\n"
-                f"📌 **Step 2/3:** Now send the **Duplicate Channel's** username or Chat ID.\n"
-                f"Send one by one. Type `done` when finished.",
-                parse_mode=ParseMode.MARKDOWN
-            )
-
-        except Exception as e:
-            await message.reply_text(
-                f"❌ Error: {e}\nCheck the channel username/ID and try again.",
-                parse_mode=ParseMode.MARKDOWN
-            )
-
-    elif state["step"] == "awaiting_duplicate":
-        if text.lower() == "done":
-            if not state["duplicates"]:
-                await message.reply_text(
-                    "❌ You must add at least one duplicate channel!",
-                    parse_mode=ParseMode.MARKDOWN
-                )
-                return
-            
-            # Save config
-            config = load_config()
-            
-            # Check if main channel already exists
-            for mapping in config["mappings"]:
-                if mapping["main_chat_id"] == state["main_chat_id"]:
-                    # Update duplicates
-                    for dup in state["duplicates"]:
-                        if dup not in mapping["duplicates"]:
-                            mapping["duplicates"].append(dup)
-                    save_config(config)
-                    
-                    dup_list = "\n".join([f"• {d['title']} (`{d['chat_id']}`)" for d in state["duplicates"]])
-                    await message.reply_text(
-                        f"✅ **Updated!**\n\n"
-                        f"**Main:** {state['main_chat_title']}\n"
-                        f"**Duplicates added:**\n{dup_list}\n\n"
-                        f"New posts will auto-forward now! 🚀",
-                        parse_mode=ParseMode.MARKDOWN
-                    )
-                    del setup_states[user_id]
-                    return
+        del setup_states[user_id]
+        return
             
             # New mapping
             config["mappings"].append({
