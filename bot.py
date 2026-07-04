@@ -9,9 +9,9 @@ from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, 
 from pyrogram.enums import ParseMode
 
 # -------------- CONFIG --------------
-API_ID = int(os.getenv("36989662"))
-API_HASH = os.getenv("7af4e08e89cb46fef559aecb420a7fdd")
-BOT_TOKEN = os.getenv("8707381128:AAHqM_3eXpJofrDHoNjbkQ509F9RT5EvT1s")
+API_ID = "36989662"
+API_HASH = "7af4e08e89cb46fef559aecb420a7fdd"
+BOT_TOKEN = "8707381128:AAHqM_3eXpJofrDHoNjbkQ509F9RT5EvT1s"
 CONFIG_FILE = "channels.json"
 # ------------------------------------
 
