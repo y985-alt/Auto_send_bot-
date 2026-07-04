@@ -218,37 +218,32 @@ except Exception as e:
             return
         
         # Add duplicate channel
-        try:
-            if text.startswith("@"):
-                chat = await client.get_chat(text)
-            elif text.startswith("-100") or text.lstrip("-").isdigit():
-                chat = await client.get_chat(int(text))
-            else:
-                await message.reply_text("❌ Invalid format. Send `@username` or numeric Chat ID.", parse_mode=ParseMode.MARKDOWN)
-                return
-            
-            # Verify bot is admin
-            try:
-                me = await client.get_me()
+try:
+    if text.startswith("@"):
+        chat = await client.get_chat(text)
+    elif text.startswith("-100") or text.lstrip("-").isdigit():
+        chat = await client.get_chat(int(text))
+    else:
+        await message.reply_text(
+            "❌ Invalid format. Send @username or numeric Chat ID.",
+            parse_mode=ParseMode.MARKDOWN
+        )
+        return
 
-                member = await client.get_chat_member(
-                    chat.id,
-                    me.id
-                )
+    # Verify bot is admin
+    me = await client.get_me()
 
-                if member.status not in ("administrator", "owner"):
-                    await message.reply_text(
-                        f"❌ I'm not an admin in **{chat.title}**. Make me admin first!",
-                        parse_mode=ParseMode.MARKDOWN
-                    )
-                    return
+    member = await client.get_chat_member(
+        chat.id,
+        me.id
+    )
 
-            except Exception as e:
-                await message.reply_text(
-                    f"❌ Cannot access **{chat.title}**.\n\n{e}",
-                    parse_mode=ParseMode.MARKDOWN
-                )
-                return
+    if member.status not in ("administrator", "owner"):
+        await message.reply_text(
+            f"❌ I'm not an admin in **{chat.title}**. Make me admin first!",
+            parse_mode=ParseMode.MARKDOWN
+        )
+        return
 
     # Check duplicate already in list
     for d in state["duplicates"]:
@@ -267,13 +262,13 @@ except Exception as e:
 
     await message.reply_text(
         f"✅ Added **{chat.title}** to duplicates! (Total: {len(state['duplicates'])})\n\n"
-        f"Send another duplicate channel or type `done` to finish.",
+        "Send another duplicate channel or type `done` to finish.",
         parse_mode=ParseMode.MARKDOWN
     )
 
 except Exception as e:
     await message.reply_text(
-        f"❌ Cannot access **{chat.title if 'chat' in locals() else text}**.\n\n{e}",
+        f"❌ Error: {e}",
         parse_mode=ParseMode.MARKDOWN
     )
 # ─────────────────────────────────────────────
