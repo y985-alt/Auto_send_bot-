@@ -227,35 +227,48 @@ except Exception as e:
                 await message.reply_text("❌ Invalid format. Send `@username` or numeric Chat ID.", parse_mode=ParseMode.MARKDOWN)
                 return
             
-            # Verify bot is admin
             try:
-                member = await client.get_chat_member(chat.id, "me")
-                if member.status not in ("administrator", "owner"):
-                    await message.reply_text(f"❌ I'm not an admin in **{chat.title}**. Make me admin first!", parse_mode=ParseMode.MARKDOWN)
-                    return
-            except Exception:
-                await message.reply_text(f"❌ Cannot access **{chat.title}**. Add me as admin first!", parse_mode=ParseMode.MARKDOWN)
-                return
-            
-            # Check duplicate already in list
-            for d in state["duplicates"]:
-                if d["chat_id"] == chat.id:
-                    await message.reply_text(f"⚠️ **{chat.title}** is already in your duplicates list!", parse_mode=ParseMode.MARKDOWN)
-                    return
-            
-            state["duplicates"].append({
-                "chat_id": chat.id,
-                "title": chat.title
-            })
-            
+    # Verify bot is admin
+    me = await client.get_me()
+
+    member = await client.get_chat_member(
+        chat.id,
+        me.id
+    )
+
+    if member.status not in ("administrator", "owner"):
+        await message.reply_text(
+            f"❌ I'm not an admin in **{chat.title}**. Make me admin first!",
+            parse_mode=ParseMode.MARKDOWN
+        )
+        return
+
+    # Check duplicate already in list
+    for d in state["duplicates"]:
+        if d["chat_id"] == chat.id:
             await message.reply_text(
-                f"✅ Added **{chat.title}** to duplicates! (Total: {len(state['duplicates'])})\n\n"
-                f"Send another duplicate channel or type `done` to finish.",
+                f"⚠️ **{chat.title}** is already in your duplicates list!",
                 parse_mode=ParseMode.MARKDOWN
             )
-        except Exception as e:
-            await message.reply_text(f"❌ Error: {e}", parse_mode=ParseMode.MARKDOWN)
+            return
 
+    # Add duplicate
+    state["duplicates"].append({
+        "chat_id": chat.id,
+        "title": chat.title
+    })
+
+    await message.reply_text(
+        f"✅ Added **{chat.title}** to duplicates! (Total: {len(state['duplicates'])})\n\n"
+        f"Send another duplicate channel or type `done` to finish.",
+        parse_mode=ParseMode.MARKDOWN
+    )
+
+except Exception as e:
+    await message.reply_text(
+        f"❌ Cannot access **{chat.title if 'chat' in locals() else text}**.\n\n{e}",
+        parse_mode=ParseMode.MARKDOWN
+    )
 # ─────────────────────────────────────────────
 # /RECONFIGURE — Setup new channels again
 # ─────────────────────────────────────────────
@@ -382,16 +395,7 @@ async def auto_forward(client, message: Message):
         logging.info("🔄 Heartbeat — Bot is alive")
 
 async def main():
-    """Start bot and keep-alive task."""
-    # Print bot info
-    me = await app.get_me()
-    logging.info(f"🤖 Bot started: @{me.username}")
-    
-    # Start keep-alive in background
-    asyncio.create_task(keep_alive())
-    
-    # Keep running
-    await asyncio.Event().wait()
+    logging.info("🤖 Bot is starting...")
 
 # ─────────────────────────────────────────────
 # ENTRY POINT
