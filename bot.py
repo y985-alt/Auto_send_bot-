@@ -122,7 +122,12 @@ async def handle_setup_input(client, message: Message):
             
             # Verify bot is admin
             try:
-                member = await client.get_chat_member(chat.id, "me")
+                me = await client.get_me()
+
+member = await client.get_chat_member(
+    chat.id,
+    me.id
+)
                 if member.status not in ("administrator", "owner"):
                     await message.reply_text(f"❌ I'm not an admin in **{chat.title}**. Make me admin first!", parse_mode=ParseMode.MARKDOWN)
                     return
