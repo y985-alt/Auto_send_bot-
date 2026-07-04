@@ -121,8 +121,7 @@ async def handle_setup_input(client, message: Message):
                 return
             
             # Verify bot is admin
-    try: 
-        
+try:
     me = await client.get_me()
 
     member = await client.get_chat_member(
@@ -136,6 +135,13 @@ async def handle_setup_input(client, message: Message):
             parse_mode=ParseMode.MARKDOWN
         )
         return
+
+except Exception as e:
+    await message.reply_text(
+        f"❌ Cannot access **{chat.title}**.\n\n{e}",
+        parse_mode=ParseMode.MARKDOWN
+    )
+    return
 
 except Exception as e:
     await message.reply_text(
