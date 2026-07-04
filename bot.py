@@ -389,11 +389,12 @@ async def auto_forward(client, message: Message):
 # ─────────────────────────────────────────────
 # KEEP ALIVE for Railway (prevent idle)
 # ─────────────────────────────────────────────
-    """Send a heartbeat every 10 minutes to keep the bot alive."""
+    ""async def keep_alive():
+    """Send a heartbeat every 10 minutes."""
     while True:
-        await asyncio.sleep(600)  # 10 minutes
+        await asyncio.sleep(600)
         logging.info("🔄 Heartbeat — Bot is alive")
-
+        
 async def main():
     logging.info("🤖 Bot is starting...")
 
