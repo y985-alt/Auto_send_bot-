@@ -121,7 +121,8 @@ async def handle_setup_input(client, message: Message):
                 return
             
             # Verify bot is admin
-            try:
+    try: 
+        
     me = await client.get_me()
 
     member = await client.get_chat_member(
