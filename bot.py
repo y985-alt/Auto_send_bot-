@@ -379,9 +379,9 @@ async def main():
 
 if __name__ == "__main__":
     try:
-        logging.info("🚀 Starting Auto Forward Bot...")
+        logging.info("🚀 Starting Bot...")
         app.run()
     except KeyboardInterrupt:
         logging.info("🛑 Bot stopped")
-    except Exception as e:
-        logging.exception(e)
+    except Exception:
+        logging.exception("Fatal Error")
