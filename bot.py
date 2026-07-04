@@ -121,42 +121,33 @@ async def handle_setup_input(client, message: Message):
                 return
             
             # Verify bot is admin
-try:
-    me = await client.get_me()
+            try:
+                me = await client.get_me()
 
-    member = await client.get_chat_member(
-        chat.id,
-        me.id
-    )
+                member = await client.get_chat_member(
+                    chat.id,
+                    me.id
+                )
 
-    if member.status not in ("administrator", "owner"):
-        await message.reply_text(
-            f"❌ I'm not an admin in **{chat.title}**. Make me admin first!",
-            parse_mode=ParseMode.MARKDOWN
-        )
-        return
+                if member.status not in ("administrator", "owner"):
+                    await message.reply_text(
+                        f"❌ I'm not an admin in **{chat.title}**. Make me admin first!",
+                        parse_mode=ParseMode.MARKDOWN
+                    )
+                    return
 
-except Exception as e:
-    await message.reply_text(
-        f"❌ Cannot access **{chat.title}**.\n\n{e}",
-        parse_mode=ParseMode.MARKDOWN
-    )
-    return
-
-except Exception as e:
-    await message.reply_text(
-        f"❌ Cannot access **{chat.title}**.\n\n{e}",
-        parse_mode=ParseMode.MARKDOWN
-    )
-    return
-                await message.reply_text(f"❌ Cannot access **{chat.title}**. Add me as admin first!", parse_mode=ParseMode.MARKDOWN)
+            except Exception as e:
+                await message.reply_text(
+                    f"❌ Cannot access **{chat.title}**.\n\n{e}",
+                    parse_mode=ParseMode.MARKDOWN
+                )
                 return
-            
+
             state["main_chat_id"] = chat.id
             state["main_chat_title"] = chat.title
             state["duplicates"] = []
             state["step"] = "awaiting_duplicate"
-            
+
             await message.reply_text(
                 f"✅ **Main Channel:** {chat.title}\n"
                 f"**Chat ID:** `{chat.id}`\n\n"
@@ -164,13 +155,20 @@ except Exception as e:
                 f"Send one by one. Type `done` when finished.",
                 parse_mode=ParseMode.MARKDOWN
             )
+
         except Exception as e:
-            await message.reply_text(f"❌ Error: {e}\nCheck the channel username/ID and try again.", parse_mode=ParseMode.MARKDOWN)
-    
+            await message.reply_text(
+                f"❌ Error: {e}\nCheck the channel username/ID and try again.",
+                parse_mode=ParseMode.MARKDOWN
+            )
+
     elif state["step"] == "awaiting_duplicate":
         if text.lower() == "done":
             if not state["duplicates"]:
-                await message.reply_text("❌ You must add at least one duplicate channel!", parse_mode=ParseMode.MARKDOWN)
+                await message.reply_text(
+                    "❌ You must add at least one duplicate channel!",
+                    parse_mode=ParseMode.MARKDOWN
+                )
                 return
             
             # Save config
