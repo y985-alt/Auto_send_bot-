@@ -387,16 +387,14 @@ async def auto_forward(client, message: Message):
             break  # Only one mapping per chat_id, avoid duplicate checks
 
 # ─────────────────────────────────────────────
-# KEEP ALIVE for Railway (prevent idle)
+# KEEP ALIVE
 # ─────────────────────────────────────────────
-    ""async def keep_alive():
+
+async def keep_alive():
     """Send a heartbeat every 10 minutes."""
     while True:
         await asyncio.sleep(600)
-        logging.info("🔄 Heartbeat — Bot is alive")
-        
-async def main():
-    logging.info("🤖 Bot is starting...")
+        logging.info("🔄 Heartbeat - Bot is alive")
 
 # ─────────────────────────────────────────────
 # ENTRY POINT
