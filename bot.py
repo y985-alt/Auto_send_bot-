@@ -227,21 +227,28 @@ except Exception as e:
                 await message.reply_text("❌ Invalid format. Send `@username` or numeric Chat ID.", parse_mode=ParseMode.MARKDOWN)
                 return
             
+            # Verify bot is admin
             try:
-    # Verify bot is admin
-    me = await client.get_me()
+                me = await client.get_me()
 
-    member = await client.get_chat_member(
-        chat.id,
-        me.id
-    )
+                member = await client.get_chat_member(
+                    chat.id,
+                    me.id
+                )
 
-    if member.status not in ("administrator", "owner"):
-        await message.reply_text(
-            f"❌ I'm not an admin in **{chat.title}**. Make me admin first!",
-            parse_mode=ParseMode.MARKDOWN
-        )
-        return
+                if member.status not in ("administrator", "owner"):
+                    await message.reply_text(
+                        f"❌ I'm not an admin in **{chat.title}**. Make me admin first!",
+                        parse_mode=ParseMode.MARKDOWN
+                    )
+                    return
+
+            except Exception as e:
+                await message.reply_text(
+                    f"❌ Cannot access **{chat.title}**.\n\n{e}",
+                    parse_mode=ParseMode.MARKDOWN
+                )
+                return
 
     # Check duplicate already in list
     for d in state["duplicates"]:
