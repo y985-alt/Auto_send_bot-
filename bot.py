@@ -379,10 +379,9 @@ async def main():
 
 if __name__ == "__main__":
     try:
-        app.run(main())
+        logging.info("🚀 Starting Auto Forward Bot...")
+        app.run()
     except KeyboardInterrupt:
-        logging.info("🛑 Bot stopped by user")
-        sys.exit(0)
+        logging.info("🛑 Bot stopped")
     except Exception as e:
-        logging.error(f"💥 Fatal error: {e}")
-        sys.exit(1)
+        logging.exception(e)
