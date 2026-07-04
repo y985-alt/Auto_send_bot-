@@ -41,13 +41,13 @@ data = query.data
 if not data:
 return
 if data == "setup_main":
-storage.update_state(user_id, config.STATE_AWAITING_MAIN_ID)
+storage.update_state(user_id, config.STATE_WAIT_MAIN)
 await query.message.edit_text(
 text="Please send me the Chat ID of your Main Channel (e.g., -1001234567890):\nMake sure the bot is an admin in that channel first.",
 reply_markup=keyboards.get_cancel_keyboard()
 )
 elif data == "setup_new":
-storage.update_state(user_id, config.STATE_AWAITING_MAIN_ID)
+storage.update_state(user_id, config.STATE_WAIT_MAIN)
 await query.message.edit_text(
 text="Please send me the Chat ID of the new Main Channel (e.g., -1001234567890):\nMake sure the bot is an admin in that channel first.",
 reply_markup=keyboards.get_cancel_keyboard()
@@ -105,7 +105,7 @@ reply_markup=reply_markup
 elif data.startswith("adddup_"):
 chat_id = data.split("_")[1]
 storage.set_current_main(user_id, chat_id)
-storage.update_state(user_id, config.STATE_AWAITING_DUP_ID)
+storage.update_state(user_id, config.STATE_WAIT_DUPLICATES)
 await query.message.edit_text(
 text=f"Please send the Chat ID for a duplicate channel targeting Main Channel {chat_id}.\nSend 'done' when you are finished adding duplicate channels.",
 reply_markup=keyboards.get_cancel_keyboard()
