@@ -154,7 +154,7 @@ text="Configuration update finished.",
 reply_markup=keyboards.get_main_menu_keyboard()
 )
 return
-if not utils.validate_chat_id(text):
+if not utils.is_chat_id(text):
 await update.message.reply_text(
 text="Invalid Chat ID format. Please send a valid ID (e.g., -1001234567890) or 'done' to finish:",
 reply_markup=keyboards.get_cancel_keyboard()
