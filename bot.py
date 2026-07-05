@@ -9,7 +9,7 @@ from pyrogram.enums import ParseMode
 # -------------- CONFIG --------------
 API_ID = 36989662
 API_HASH = "7af4e08e89cb46fef559aecb420a7fdd"
-BOT_TOKEN = "8707381128:AAHqM_3eXpJofrDHoNjbkQ509F9RT5EvT1s"
+BOT_TOKEN = "8505795197:AAH4lMBj5r7LA_ZdeNqCAWGt3wlnavIqSZU"
 CONFIG_FILE = "channels.json"
 # ------------------------------------
 
