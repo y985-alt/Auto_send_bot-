@@ -84,6 +84,197 @@ async def reconfigure_command(client, message: Message):
 async def handle_setup_input(client, message: Message):
     if not message.from_user:
         return
+    user_id = message.from_user.id
+    if user_id not in setup_states:
+        return
+    state = setup_states[user_id]
+    text = message.text.strip()
+    config = load_config()
+    if state["step"] == "awaiting_main_channel":
+        try:
+            if not text.startswith("-100"):
+                await message.reply_text("❌ Sirf **-100** se shuru hone wala Chat ID daalein!", parse_mode=ParseMode.MARKDOWN)
+                return
+            chat = await client.get_chat(int(text))
+            state["main_chat_id"] = chat.id
+            state["main_chat_title"] = chat.title
+            state["duplicates"] = []
+            state["step"] = "awaiting_duplicate"
+            await message.reply_text(f"✅ **Main Channel set:** {chat.title}\n\n📌 **Step 2/3:** Ab **Duplicate Channel ka Chat ID** bhejein.\nType `done` jab sab add ho jayein.", parse_mode=ParseMode.MARKDOWN)
+        except ValueError:
+            await message.reply_text("❌ Sirf **numeric Chat ID** daalein! Jaise: `-1003928300495`", parse_mode=ParseMode.MARKDOWN)
+        except Exception as e:
+            await message.reply_text(f"❌ **Error:** {e}\n\n**Check:** 1. Bot Admin hai? 2. @BotFather Privacy OFF? 3. Chat ID sahi?", parse_mode=ParseMode.MARKDOWN)
+            if user_id in setup_states:
+                del setup_states[user_id]
+        return
+    if state["step"] == "awaiting_duplicate":
+        if text.lower() == "done":
+            if not state["duplicates"]:
+                await message.reply_text("❌ Koi duplicate add nahi kiya. /setup se dobara karein.", parse_mode=ParseMode.MARKDOWN)
+                if user_id in setup_states:
+                    del setup_states[user_id]
+                return
+            existing = None
+            for m in config["mappings"]:
+                if m["main_chat_id"] == state["main_chat_id"]:
+                    existing = m
+                    break
+            if existing:
+                for dup in state["duplicates"]:
+                    if dup not in existing["duplicates"]:
+                        existing["duplicates"].append(dup)
+                save_config(config)
+                dup_list = "\n".join([f"• {d['title']}" for d in state["duplicates"]])
+                await message.reply_text(f"✅ **Updated!**\n\n**Main:** {state['main_chat_title']}\n**Duplicates added:**\n{dup_list}\n\n🚀 Auto-forwarding started!", parse_mode=ParseMode.MARKDOWN)
+            else:
+                config["mappings"].append({"main_chat_id": state["main_chat_id"], "main_chat_title": state["main_chat_title"], "duplicates": state["duplicates"]})
+                save_config(config)
+                dup_list = "\n".join([f"• {d['title']}" for d in state["duplicates"]])
+                await message.reply_text(f"✅ **Setup Complete!**\n\n**Main Channel:** {state['main_chat_title']}\n**Duplicates ({len(state['duplicates'])}):**\n{dup_list}\n\n🚀 Auto-forwarding started!", parse_mode=ParseMode.MARKDOWN)
+            if user_id in setup_states:
+                del setup_states[user_id]
+            return
+        try:
+            if not text.startswith("-100"):
+                await message.reply_text("❌ Sirf **-100** se shuru hone wala Chat ID daalein!", parse_mode=ParseMode.MARKDOWN)
+                return
+            chat = await client.get_chat(int(text))
+            for d in state["duplicates"]:
+                if d["chat_id"] == chat.id:
+                    await message.reply_text(f"⚠️ **{chat.title}** already in list!", parse_mode=ParseMode.MARKDOWN)
+                    return
+            state["duplicates"].append({"chat_id": chat.id, "title": chat.title})
+            await message.reply_text(f"✅ Added **{chat.title}**! (Total: {len(state['duplicates'])})\n\nSend another Chat ID or type `done`.", parse_mode=ParseMode.MARKDOWN)
+        except ValueError:
+            await message.reply_text("❌ Sirf **numeric Chat ID** daalein! Jaise: `-1003941312730`", parse_mode=ParseMode.MARKDOWN)
+        except Exception as e:
+            await message.reply_text(f"❌ Error: {e}\n\nCheck: Bot admin hai? @BotFather mein Privacy OFF hai?", parse_mode=ParseMode.MARKDOWN)
+
+
+@app.on_message(filters.command("status"))
+async def status_command(client, message: Message):
+    if not message.from_user:
+        return
+    config = load_config()
+    if not config["mappings"]:
+        await message.reply_text("📭 **No mappings configured yet.**", parse_mode=ParseMode.MARKDOWN)
+        return
+    text = "📋 **Current Channel Mappings:**\n\n"
+    for i, mapping in enumerate(config["mappings"], 1):
+        text += f"**{i}. Main:** {mapping['main_chat_title']} (`{mapping['main_chat_id']}`)\n"
+        text += f"   **→ Duplicates ({len(mapping['duplicates'])}):**\n"
+        for dup in mapping["duplicates"]:
+            text += f"      • {dup['title']} (`{dup['chat_id']}`)\n"
+        text += "\n"
+    text += f"\n**Total mappings: {len(config['mappings'])}**"
+    await message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
+
+
+@app.on_message(filters.command("delete"))
+async def delete_command(client, message: Message):
+    if not message.from_user:
+        return
+    config = load_config()
+    if not config["mappings"]:
+        await message.reply_text("📭 No mappings to delete.")
+        return
+    buttons = []
+    for i, mapping in enumerate(config["mappings"], 1):
+        buttons.append([InlineKeyboardButton(f"{i}. {mapping['main_chat_title']} ({len(mapping['duplicates'])} dupes)", callback_data=f"del_{i-1}")])
+    buttons.append([InlineKeyboardButton("❌ Cancel", callback_data="del_cancel")])
+    await message.reply_text("🗑 **Select a mapping to delete:**", reply_markup=InlineKeyboardMarkup(buttons), parse_mode=ParseMode.MARKDOWN)
+
+
+@app.on_callback_query(filters.regex(r"^del_"))
+async def delete_callback(client, callback_query: CallbackQuery):
+    data = callback_query.data
+    if data == "del_cancel":
+        await callback_query.message.edit_text("❌ Cancelled.")
+        await callback_query.answer()
+        return
+    index = int(data.split("_")[1])
+    config = load_config()
+    if index >= len(config["mappings"]):
+        await callback_query.answer("Invalid selection!")
+        return
+    removed = config["mappings"].pop(index)
+    save_config(config)
+    await callback_query.message.edit_text(f"✅ **Deleted:** {removed['main_chat_title']}\nRemoved {len(removed['duplicates'])} duplicate(s).", parse_mode=ParseMode.MARKDOWN)
+    await callback_query.answer()
+
+
+@app.on_message(filters.channel)
+async def auto_forward(client, message: Message):
+    config = load_config()
+    chat_id = message.chat.id
+    for mapping in config["mappings"]:
+        if mapping["main_chat_id"] == chat_id:
+            for dup in mapping["duplicates"]:
+                try:
+                    await message.copy(chat_id=dup["chat_id"], caption=message.caption if message.caption else None, parse_mode=ParseMode.MARKDOWN if message.caption else None)
+                    logging.info(f"✅ Forwarded from {message.chat.title} → {dup['title']}")
+                except Exception as e:
+                    logging.error(f"❌ Failed to forward to {dup['title']}: {e}")
+            break
+
+
+if __name__ == "__main__":
+    try:
+        app.run()
+    except KeyboardInterrupt:
+        logging.info("🛑 Bot stopped by user")
+    except Exception as e:
+        logging.exception(f"Fatal Error: {e}")    config = load_config()
+    count = len(config.get("mappings", []))
+    welcome_text = (
+        f"👋 **Welcome to Auto-Forward Bot!**\n\n"
+        f"✅ **Total setups active:** {count}\n\n"
+        f"**Commands:**\n"
+        f"• /setup — Add channel mapping\n"
+        f"• /status — See all mappings\n"
+        f"• /delete — Remove a mapping\n\n"
+        f"**⚠️ Bot ko channel ka Admin banayein!**\n"
+        f"**⚠️ @BotFather mein Group Privacy = OFF karein!**"
+    )
+    buttons = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("➕ Add to Channel", url=f"https://t.me/{client.me.username}?startchannel=new"),
+            InlineKeyboardButton("➕ Add to Group", url=f"https://t.me/{client.me.username}?startgroup=new")
+        ]
+    ])
+    await message.reply_text(welcome_text, reply_markup=buttons, parse_mode=ParseMode.MARKDOWN)
+
+
+setup_states = {}
+
+
+@app.on_message(filters.command("setup"))
+async def setup_command(client, message: Message):
+    if not message.from_user:
+        return
+    user_id = message.from_user.id
+    setup_states[user_id] = {"step": "awaiting_main_channel"}
+    await message.reply_text(
+        "📌 **Step 1/3:** Send **Main Channel Chat ID**.\n\n"
+        "Example: `-1003928300495`\n\n"
+        "⚠️ Bot **Admin** hona chahiye channel mein!\n"
+        "⚠️ @BotFather → Group Privacy = **OFF**",
+        parse_mode=ParseMode.MARKDOWN
+    )
+
+
+@app.on_message(filters.command("reconfigure"))
+async def reconfigure_command(client, message: Message):
+    if not message.from_user:
+        return
+    await setup_command(client, message)
+
+
+@app.on_message(filters.text & filters.private & ~filters.command(["start", "setup", "status", "delete", "reconfigure"]))
+async def handle_setup_input(client, message: Message):
+    if not message.from_user:
+        return
 
     user_id = message.from_user.id
     if user_id not in setup_states:
